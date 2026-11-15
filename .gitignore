@@ -25,7 +25,8 @@ migrations/__pycache__/
 
 # Archivos de caché y compilados
 staticfiles/
-media/
+media/*
+!media/portadas/
 *.swp
 *.swo
 
