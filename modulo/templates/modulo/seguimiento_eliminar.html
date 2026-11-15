@@ -1,0 +1,26 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Quitar {{ seguimiento.titulo.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body p-4 text-center">
+                <i class="bi bi-exclamation-triangle text-danger display-5 d-block mb-3"></i>
+                <h1 class="h4">¿Quitar "{{ seguimiento.titulo.nombre }}" de tu lista?</h1>
+                <p class="text-body-secondary">
+                    Se borrará tu progreso ({{ seguimiento.episodio_actual }} de {{ seguimiento.titulo.total_episodios }} episodios)
+                    {% if seguimiento.calificacion %}y tu calificación de {{ seguimiento.calificacion }}/10{% endif %}.
+                    El título seguirá en el catálogo.
+                </p>
+                <form method="post" class="d-flex justify-content-center gap-2">
+                    {% csrf_token %}
+                    <a href="{% url 'mi_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, quitar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

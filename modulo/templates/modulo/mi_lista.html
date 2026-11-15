@@ -1,0 +1,106 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Mi lista{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+    <h1 class="h2 mb-0">Mi lista</h1>
+    <a href="{% url 'catalogo' %}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Agregar desde el catálogo
+    </a>
+</div>
+
+{# Pestañas por estado #}
+<ul class="nav nav-pills flex-wrap gap-1 mb-2">
+    {% for valor, nombre, cantidad in pestanas %}
+        <li class="nav-item">
+            <a class="nav-link py-1 px-3 {% if valor == estado_actual %}active{% endif %}"
+               href="{% if valor %}{% querystring estado=valor %}{% else %}{% querystring estado=None %}{% endif %}">
+                {{ nombre }}
+                <span class="badge {% if valor == estado_actual %}text-bg-light{% else %}text-bg-secondary{% endif %} ms-1">{{ cantidad }}</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+<div class="mb-4">
+    {% if solo_favoritas %}
+        <a href="{% querystring favoritas=None %}" class="btn btn-warning btn-sm">
+            <i class="bi bi-star-fill"></i> Solo favoritas ({{ total_favoritas }}) <i class="bi bi-x-lg ms-1"></i>
+        </a>
+    {% else %}
+        <a href="{% querystring favoritas='on' %}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-star"></i> Ver solo favoritas ({{ total_favoritas }})
+        </a>
+    {% endif %}
+</div>
+
+{% if seguimientos %}
+    <div class="list-group shadow-sm">
+        {% for s in seguimientos %}
+            <div class="list-group-item py-3">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <a href="{{ s.titulo.get_absolute_url }}">
+                            {% if s.titulo.portada %}
+                                <img src="{{ s.titulo.portada.url }}" class="rounded portada miniatura" alt="Portada de {{ s.titulo.nombre }}">
+                            {% else %}
+                                <div class="rounded portada portada-vacia miniatura"><i class="bi bi-film"></i></div>
+                            {% endif %}
+                        </a>
+                    </div>
+
+                    <div class="col">
+                        <h2 class="h6 mb-1">
+                            {% if s.favorita %}<i class="bi bi-star-fill text-warning" title="Favorita"></i>{% endif %}
+                            <a href="{{ s.titulo.get_absolute_url }}" class="text-reset text-decoration-none">{{ s.titulo.nombre }}</a>
+                        </h2>
+                        <div class="small text-body-secondary mb-2">
+                            {% include 'modulo/_badge_estado.html' %}
+                            {% if s.plataforma %}&middot; {{ s.plataforma }}{% endif %}
+                            &middot;
+                            {% if s.calificacion %}
+                                <i class="bi bi-star-half"></i> {{ s.calificacion }}/10
+                            {% else %}
+                                Sin calificar
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 progreso">
+                            <div class="progress flex-grow-1" role="progressbar" aria-label="Progreso"
+                                 aria-valuenow="{{ s.porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar {% if s.terminado %}bg-success{% endif %}" style="width: {{ s.porcentaje }}%"></div>
+                            </div>
+                            <span class="small text-nowrap">{{ s.episodio_actual }} / {{ s.titulo.total_episodios }}</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-auto d-flex gap-2 justify-content-end">
+                        <form method="post" action="{% url 'sumar_episodio' s.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success"
+                                    title="Marcar el siguiente episodio como visto"
+                                    {% if s.terminado %}disabled{% endif %}>
+                                +1 ep.
+                            </button>
+                        </form>
+                        <a href="{% url 'editar_seguimiento' s.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'eliminar_seguimiento' s.pk %}" class="btn btn-sm btn-outline-danger" title="Quitar de mi lista">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center text-body-secondary py-5">
+        <i class="bi bi-collection-play display-4 d-block mb-3"></i>
+        {% if estado_actual or solo_favoritas %}
+            No tienes títulos con este filtro.
+        {% else %}
+            Tu lista está vacía. Busca algo en el <a href="{% url 'catalogo' %}">catálogo</a> y agrégalo.
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

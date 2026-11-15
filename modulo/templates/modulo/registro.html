@@ -1,0 +1,28 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Registro{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4 text-center">Crear cuenta</h1>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                    {% for campo in form %}
+                        {% include 'modulo/_campo.html' %}
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100">Registrarme</button>
+                </form>
+                <p class="text-center mt-3 mb-0 small">
+                    ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

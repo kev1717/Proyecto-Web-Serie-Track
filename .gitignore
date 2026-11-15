@@ -61,3 +61,7 @@ docs/_build/
 # Archivos de compilación de frontend (si usas Webpack o similar)
 dist/
 build/
+
+# Archivos de Claude Code (no se suben)
+.claude/
+CLAUDE.md

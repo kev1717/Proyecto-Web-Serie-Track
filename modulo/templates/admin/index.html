@@ -1,0 +1,38 @@
+{% extends "admin/index.html" %}
+{% load admin_resumen %}
+
+{# Agrega un resumen con cifras del sitio encima de la lista de modelos #}
+
+{% block content %}
+{% resumen_serietrack as r %}
+<div class="st-resumen">
+    <a class="st-tarjeta" href="{% url 'admin:modulo_titulo_changelist' %}">
+        <i class="bi bi-collection-play"></i>
+        <span class="st-numero">{{ r.series|add:r.animes }}</span>
+        <span class="st-etiqueta">títulos · {{ r.series }} series, {{ r.animes }} animes</span>
+    </a>
+    <a class="st-tarjeta" href="{% url 'admin:auth_user_changelist' %}?is_staff__exact=0">
+        <i class="bi bi-people"></i>
+        <span class="st-numero">{{ r.usuarios }}</span>
+        <span class="st-etiqueta">usuarios registrados</span>
+    </a>
+    <a class="st-tarjeta" href="{% url 'admin:modulo_seguimiento_changelist' %}">
+        <i class="bi bi-list-check"></i>
+        <span class="st-numero">{{ r.seguimientos }}</span>
+        <span class="st-etiqueta">seguimientos</span>
+    </a>
+    <a class="st-tarjeta{% if r.ocultos %} st-alerta{% endif %}" href="{% url 'admin:modulo_comentario_changelist' %}?visible__exact=0">
+        <i class="bi bi-chat-left-text"></i>
+        <span class="st-numero">{{ r.comentarios }}</span>
+        <span class="st-etiqueta">comentarios · {{ r.ocultos }} oculto{{ r.ocultos|pluralize }}</span>
+    </a>
+</div>
+{% if r.sin_portada %}
+    <p class="st-aviso">
+        <i class="bi bi-image"></i>
+        Hay {{ r.sin_portada }} título{{ r.sin_portada|pluralize }} sin portada.
+        <a href="{% url 'admin:modulo_titulo_changelist' %}">Ve a Títulos</a>, selecciónalos y usa la acción "Generar portada".
+    </p>
+{% endif %}
+{{ block.super }}
+{% endblock %}

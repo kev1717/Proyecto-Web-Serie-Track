@@ -1,0 +1,258 @@
+/* Estilos del panel de administración de SerieTrack.
+   El admin de Django define sus colores con variables CSS: aquí se cambian por la
+   paleta del sitio (barra oscura y azul de Bootstrap), en modo claro y oscuro. */
+
+/* ---------- Colores: modo claro ----------
+   Solo se cambian variables que el bloque oscuro de abajo vuelve a definir (o que valen
+   igual en ambos modos); los colores de fondo y texto los pone el propio admin. */
+:root {
+    --primary: #0d6efd;
+    --secondary: #212529;
+    --accent: #6ea8fe;
+    --primary-fg: #fff;
+
+    --header-bg: #212529;
+    --header-color: #adb5bd;
+    --header-branding-color: #fff;
+    --header-link-color: #fff;
+
+    --breadcrumbs-bg: #343a40;
+    --breadcrumbs-fg: #adb5bd;
+    --breadcrumbs-link-fg: #fff;
+
+    --link-fg: #0d6efd;
+    --link-hover-color: #0a58ca;
+    --link-selected-fg: #0a58ca;
+
+    --button-bg: #0d6efd;
+    --button-hover-bg: #0b5ed7;
+    --default-button-bg: #0a58ca;
+    --default-button-hover-bg: #084298;
+
+    --selected-row: #e7f1ff;
+    --st-fondo: #f1f3f5;
+    --st-sombra: 0 1px 3px rgba(0, 0, 0, .08), 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+/* ---------- Colores: modo oscuro (automático o elegido con el botón del admin) ---------- */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary: #1d3f73;
+        --accent: #6ea8fe;
+        --header-bg: #0b0d0f;
+        --breadcrumbs-bg: #1a1d20;
+        --link-fg: #6ea8fe;
+        --link-hover-color: #9ec5fe;
+        --link-selected-fg: #9ec5fe;
+        --button-bg: #0d6efd;
+        --button-hover-bg: #3d8bfd;
+        --default-button-bg: #0a58ca;
+        --default-button-hover-bg: #0d6efd;
+        --selected-row: #0b2a52;
+        --st-fondo: #1a1a1a;
+        --st-sombra: 0 1px 3px rgba(0, 0, 0, .5);
+    }
+}
+
+html[data-theme="dark"] {
+    --primary: #1d3f73;
+    --accent: #6ea8fe;
+    --header-bg: #0b0d0f;
+    --breadcrumbs-bg: #1a1d20;
+    --link-fg: #6ea8fe;
+    --link-hover-color: #9ec5fe;
+    --link-selected-fg: #9ec5fe;
+    --button-bg: #0d6efd;
+    --button-hover-bg: #3d8bfd;
+    --default-button-bg: #0a58ca;
+    --default-button-hover-bg: #0d6efd;
+    --selected-row: #0b2a52;
+    --st-fondo: #1a1a1a;
+    --st-sombra: 0 1px 3px rgba(0, 0, 0, .5);
+}
+
+/* ---------- Encabezado ---------- */
+#header {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+#site-name a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: .4rem;
+    font-weight: 700;
+}
+
+.st-logo {
+    color: var(--accent);
+}
+
+.st-subtitulo {
+    font-size: .8rem;
+    font-weight: 400;
+    color: var(--header-color);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-left: .3rem;
+}
+
+/* ---------- Bloques: esquinas redondeadas y sombra suave ---------- */
+.module {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--st-sombra);
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+#changelist .results,
+#changelist-filter,
+.inline-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.button,
+input[type=submit],
+input[type=button],
+.submit-row input,
+a.button,
+.object-tools a {
+    border-radius: 6px !important;
+}
+
+/* ---------- Resumen de la portada del admin ---------- */
+.st-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+a.st-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--body-bg);
+    border: 1px solid var(--hairline-color);
+    box-shadow: var(--st-sombra);
+    color: var(--body-fg);
+    text-decoration: none !important;
+    transition: transform .15s ease, border-color .15s ease;
+}
+
+a.st-tarjeta:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.st-tarjeta .bi {
+    font-size: 1.3rem;
+    color: #0d6efd;
+}
+
+.st-tarjeta.st-alerta .bi {
+    color: #fd7e14;
+}
+
+.st-numero {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--body-loud-color);
+}
+
+.st-etiqueta {
+    font-size: .8rem;
+    color: var(--body-quiet-color);
+}
+
+.st-aviso {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--message-warning-bg);
+}
+
+/* ---------- Portadas ---------- */
+.st-miniatura {
+    display: block;
+    width: 40px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: var(--st-sombra);
+}
+
+.st-portada-grande {
+    display: block;
+    width: 160px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: var(--st-sombra);
+}
+
+.st-sin-portada {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: .65rem;
+    background: var(--st-fondo);
+    color: var(--body-quiet-color);
+}
+
+#result_list td {
+    vertical-align: middle;
+}
+
+/* ---------- Etiquetas de tipo y estado ---------- */
+.st-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #fff;
+    background: #6c757d;
+}
+
+.st-serie { background: #0d6efd; }
+.st-anime { background: #dc3545; }
+
+.st-viendo { background: #0d6efd; }
+.st-completada { background: #198754; }
+.st-pausada { background: #ffc107; color: #212529; }
+.st-abandonada { background: #6c757d; }
+.st-pendiente { background: var(--st-fondo); color: var(--body-fg); border: 1px solid var(--border-color); }
+
+/* ---------- Barra de progreso en la lista de seguimientos ---------- */
+.st-progreso {
+    display: inline-block;
+    vertical-align: middle;
+    width: 80px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--st-fondo);
+    overflow: hidden;
+    margin-right: 6px;
+}
+
+.st-progreso div {
+    height: 100%;
+    background: #0d6efd;
+}
+
+.st-progreso-texto {
+    font-size: .8rem;
+    white-space: nowrap;
+}

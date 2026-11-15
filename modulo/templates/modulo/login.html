@@ -1,0 +1,29 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Iniciar sesión{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4 text-center">Iniciar sesión</h1>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                    {% for campo in form %}
+                        {% include 'modulo/_campo.html' %}
+                    {% endfor %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+                <p class="text-center mt-3 mb-0 small">
+                    ¿No tienes cuenta? <a href="{% url 'registro' %}">Regístrate</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

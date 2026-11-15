@@ -1,0 +1,80 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Ranking{% endblock %}
+
+{% block contenido %}
+<div class="mb-3">
+    <h1 class="h2 mb-1">Ranking</h1>
+    <p class="text-body-secondary mb-0">
+        Los títulos mejor calificados por la comunidad de SerieTrack.
+        {% if votos_minimos > 1 %}Solo aparecen los que tienen al menos {{ votos_minimos }} votos.{% endif %}
+    </p>
+</div>
+
+{# Pestañas por tipo #}
+<ul class="nav nav-pills gap-1 mb-4">
+    <li class="nav-item">
+        <a class="nav-link py-1 px-3 {% if not tipo_actual %}active{% endif %}" href="{% url 'ranking' %}">Todos</a>
+    </li>
+    {% for valor, nombre in tipos %}
+        <li class="nav-item">
+            <a class="nav-link py-1 px-3 {% if valor == tipo_actual %}active{% endif %}"
+               href="{% url 'ranking' %}?tipo={{ valor }}">{{ nombre }}s</a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% if titulos %}
+    <ol class="list-group shadow-sm">
+        {% for titulo in titulos %}
+            <li class="list-group-item py-3 position-relative">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="puesto text-center fw-bold {% if forloop.counter <= 3 %}puesto-{{ forloop.counter }}{% else %}text-body-secondary{% endif %}">
+                        {% if forloop.counter <= 3 %}
+                            <i class="bi bi-trophy-fill d-block"></i>
+                        {% endif %}
+                        {{ forloop.counter }}
+                    </div>
+
+                    {% if titulo.portada %}
+                        <img src="{{ titulo.portada.url }}" class="rounded portada miniatura" alt="">
+                    {% else %}
+                        <div class="rounded portada portada-vacia miniatura"><i class="bi bi-film"></i></div>
+                    {% endif %}
+
+                    <div class="flex-grow-1 min-w-0">
+                        <h2 class="h6 mb-1">
+                            <a href="{{ titulo.get_absolute_url }}" class="stretched-link text-reset text-decoration-none">
+                                {{ titulo.nombre }}
+                            </a>
+                        </h2>
+                        <div class="small text-body-secondary">
+                            <span class="badge {% if titulo.tipo == 'anime' %}text-bg-danger{% else %}text-bg-primary{% endif %}">
+                                {{ titulo.get_tipo_display }}
+                            </span>
+                            {{ titulo.anio }} &middot; {{ titulo.genero }}
+                        </div>
+                    </div>
+
+                    <div class="text-end text-nowrap">
+                        <div class="fs-5 fw-semibold">
+                            <i class="bi bi-star-fill text-warning"></i> {{ titulo.promedio|floatformat:1 }}
+                        </div>
+                        <div class="small text-body-secondary">
+                            {{ titulo.votos }} voto{{ titulo.votos|pluralize }}
+                        </div>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+{% else %}
+    <div class="text-center text-body-secondary py-5">
+        <i class="bi bi-trophy display-4 d-block mb-3"></i>
+        Todavía no hay títulos calificados{% if tipo_actual %} de este tipo{% endif %}.
+        {% if user.is_authenticated %}
+            Califica los títulos de <a href="{% url 'mi_lista' %}">tu lista</a> para que aparezcan aquí.
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

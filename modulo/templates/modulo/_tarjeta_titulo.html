@@ -1,0 +1,26 @@
+{# Tarjeta de un título. Uso: {% include 'modulo/_tarjeta_titulo.html' with titulo=t %} #}
+<div class="card h-100 shadow-sm tarjeta-titulo">
+    <a href="{{ titulo.get_absolute_url }}">
+        {% if titulo.portada %}
+            <img src="{{ titulo.portada.url }}" class="card-img-top portada" alt="Portada de {{ titulo.nombre }}">
+        {% else %}
+            <div class="card-img-top portada portada-vacia">
+                <i class="bi bi-film"></i>
+            </div>
+        {% endif %}
+    </a>
+    <div class="card-body d-flex flex-column">
+        <h2 class="h6 card-title mb-1">
+            <a href="{{ titulo.get_absolute_url }}" class="stretched-link text-reset text-decoration-none">
+                {{ titulo.nombre }}
+            </a>
+        </h2>
+        <p class="small text-body-secondary mb-2">{{ titulo.anio }} &middot; {{ titulo.genero }}</p>
+        <div class="mt-auto">
+            <span class="badge {% if titulo.tipo == 'anime' %}text-bg-danger{% else %}text-bg-primary{% endif %}">
+                {{ titulo.get_tipo_display }}
+            </span>
+            <span class="badge text-bg-light border">{{ titulo.total_episodios }} ep.</span>
+        </div>
+    </div>
+</div>

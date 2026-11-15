@@ -1,0 +1,2 @@
+{# Insignia con el estado de un seguimiento. Uso: {% include 'modulo/_badge_estado.html' with s=seguimiento %} #}
+<span class="badge {% if s.estado == 'viendo' %}text-bg-primary{% elif s.estado == 'completada' %}text-bg-success{% elif s.estado == 'pausada' %}text-bg-warning{% elif s.estado == 'abandonada' %}text-bg-secondary{% else %}text-bg-light border{% endif %}">{{ s.get_estado_display }}</span>

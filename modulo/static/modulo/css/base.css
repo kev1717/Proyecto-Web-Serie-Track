@@ -1,3 +1,67 @@
-#example {
-    color:blue;
+/* Estilos propios de SerieTrack (complementan a Bootstrap) */
+
+.navbar-brand .bi {
+    color: var(--bs-primary);
+}
+
+/* Portadas con proporción de póster (2:3) */
+.portada {
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    width: 100%;
+}
+
+.portada-vacia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+    font-size: 3rem;
+}
+
+.tarjeta-titulo {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.tarjeta-titulo:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--bs-box-shadow) !important;
+}
+
+.sinopsis {
+    max-width: 70ch;
+}
+
+/* Miniaturas de portada en "Mi lista" */
+.miniatura {
+    width: 56px;
+    font-size: 1.5rem;
+}
+
+/* Comentarios: que las palabras muy largas no rompan el diseño */
+.texto-comentario {
+    max-width: 70ch;
+    overflow-wrap: anywhere;
+}
+
+/* Ranking: columna del puesto y colores de los tres primeros */
+.puesto {
+    width: 2.5rem;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    line-height: 1.1;
+}
+
+.puesto-1 { color: #d4a017; }  /* oro */
+.puesto-2 { color: #8a9597; }  /* plata */
+.puesto-3 { color: #b0703c; }  /* bronce */
+
+.min-w-0 {
+    min-width: 0;
+}
+
+.progreso .progress {
+    height: .5rem;
+    max-width: 22rem;
 }

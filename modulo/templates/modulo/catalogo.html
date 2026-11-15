@@ -1,0 +1,86 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Catálogo{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-baseline mb-3">
+    <h1 class="h2 mb-0">Catálogo</h1>
+    <span class="text-body-secondary">
+        {{ total }} título{{ total|pluralize }}
+    </span>
+</div>
+
+<form method="get" class="card card-body mb-4 shadow-sm">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label for="{{ form.q.id_for_label }}" class="form-label small mb-1">{{ form.q.label }}</label>
+            {{ form.q }}
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="{{ form.tipo.id_for_label }}" class="form-label small mb-1">{{ form.tipo.label }}</label>
+            {{ form.tipo }}
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="{{ form.genero.id_for_label }}" class="form-label small mb-1">{{ form.genero.label }}</label>
+            {{ form.genero }}
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">
+                <i class="bi bi-search"></i> Filtrar
+            </button>
+            {% if request.GET %}
+                <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary" title="Quitar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+{% if pagina.object_list %}
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
+        {% for titulo in pagina %}
+            <div class="col">
+                {% include 'modulo/_tarjeta_titulo.html' %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if pagina.has_other_pages %}
+        <nav class="mt-4" aria-label="Páginas del catálogo">
+            <ul class="pagination justify-content-center">
+                {% if pagina.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+
+                {% for numero in pagina.paginator.page_range %}
+                    <li class="page-item {% if numero == pagina.number %}active{% endif %}">
+                        <a class="page-link" href="{% querystring page=numero %}">{{ numero }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if pagina.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{% querystring page=pagina.next_page_number %}">Siguiente</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center text-body-secondary py-5">
+        <i class="bi bi-search display-4 d-block mb-3"></i>
+        {% if request.GET %}
+            No hay títulos que coincidan con tu búsqueda.
+        {% else %}
+            Todavía no hay títulos en el catálogo.
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

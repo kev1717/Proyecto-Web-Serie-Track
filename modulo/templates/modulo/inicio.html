@@ -1,0 +1,34 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}Inicio{% endblock %}
+
+{% block contenido %}
+<div class="p-5 mb-4 bg-body-tertiary rounded-3 text-center">
+    <h1 class="display-5 fw-bold">Lleva el control de tus series y animes</h1>
+    <p class="lead col-lg-8 mx-auto">
+        Agrega títulos a tu lista, registra en qué episodio vas, califícalos
+        y comenta con otros usuarios.
+    </p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'registro' %}" class="btn btn-primary btn-lg me-2">Crear cuenta</a>
+        <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-lg">Ver catálogo</a>
+    {% else %}
+        <p>Hola, <strong>{{ user.username }}</strong>. ¡Qué bueno verte de nuevo!</p>
+        <a href="{% url 'catalogo' %}" class="btn btn-primary btn-lg">Explorar el catálogo</a>
+    {% endif %}
+</div>
+
+{% if recientes %}
+    <div class="d-flex justify-content-between align-items-baseline mb-3">
+        <h2 class="h4 mb-0">Agregados recientemente</h2>
+        <a href="{% url 'catalogo' %}">Ver todo <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row row-cols-2 row-cols-lg-4 g-3">
+        {% for titulo in recientes %}
+            <div class="col">
+                {% include 'modulo/_tarjeta_titulo.html' %}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

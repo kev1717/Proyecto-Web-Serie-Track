@@ -1,0 +1,158 @@
+{% extends 'modulo/base.html' %}
+
+{% block titulo %}{{ titulo.nombre }}{% endblock %}
+
+{% block contenido %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalogo' %}">Catálogo</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ titulo.nombre }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-md-4 col-lg-3">
+        {% if titulo.portada %}
+            <img src="{{ titulo.portada.url }}" class="img-fluid rounded shadow-sm w-100 portada"
+                 alt="Portada de {{ titulo.nombre }}">
+        {% else %}
+            <div class="rounded shadow-sm portada portada-vacia">
+                <i class="bi bi-film"></i>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-8 col-lg-9">
+        <h1 class="mb-2">{{ titulo.nombre }}</h1>
+        <div class="mb-3">
+            <span class="badge {% if titulo.tipo == 'anime' %}text-bg-danger{% else %}text-bg-primary{% endif %}">
+                {{ titulo.get_tipo_display }}
+            </span>
+            <a href="{% url 'catalogo' %}?genero={{ titulo.genero_id }}" class="badge text-bg-secondary text-decoration-none">
+                {{ titulo.genero }}
+            </a>
+        </div>
+
+        <dl class="row mb-4">
+            <dt class="col-sm-3 col-lg-2">Año</dt>
+            <dd class="col-sm-9 col-lg-10">{{ titulo.anio }}</dd>
+            <dt class="col-sm-3 col-lg-2">Episodios</dt>
+            <dd class="col-sm-9 col-lg-10">{{ titulo.total_episodios }}</dd>
+            <dt class="col-sm-3 col-lg-2">Calificación</dt>
+            <dd class="col-sm-9 col-lg-10">
+                {% if estadisticas.votos %}
+                    <span class="fw-semibold"><i class="bi bi-star-fill text-warning"></i> {{ estadisticas.promedio|floatformat:1 }}</span>/10
+                    <span class="small text-body-secondary">({{ estadisticas.votos }} voto{{ estadisticas.votos|pluralize }})</span>
+                {% else %}
+                    <span class="text-body-secondary">Sin calificaciones todavía</span>
+                {% endif %}
+            </dd>
+            <dt class="col-sm-3 col-lg-2">Seguidores</dt>
+            <dd class="col-sm-9 col-lg-10">
+                {{ estadisticas.seguidores }} usuario{{ estadisticas.seguidores|pluralize }} lo tiene{{ estadisticas.seguidores|pluralize:"n" }} en su lista
+            </dd>
+        </dl>
+
+        {# Estado del título en la lista del usuario #}
+        <div class="card card-body bg-body-tertiary mb-4">
+            {% if not user.is_authenticated %}
+                <p class="mb-0">
+                    <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Inicia sesión</a>
+                    o <a href="{% url 'registro' %}">regístrate</a> para agregar este título a tu lista.
+                </p>
+            {% elif seguimiento %}
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <div class="flex-grow-1">
+                        <div class="mb-2">
+                            <strong>En tu lista</strong>
+                            {% include 'modulo/_badge_estado.html' with s=seguimiento %}
+                            {% if seguimiento.favorita %}<i class="bi bi-star-fill text-warning" title="Favorita"></i>{% endif %}
+                            {% if seguimiento.calificacion %}
+                                <span class="small text-body-secondary ms-1">Tu calificación: {{ seguimiento.calificacion }}/10</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 progreso">
+                            <div class="progress flex-grow-1" role="progressbar" aria-label="Progreso"
+                                 aria-valuenow="{{ seguimiento.porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar {% if seguimiento.terminado %}bg-success{% endif %}"
+                                     style="width: {{ seguimiento.porcentaje }}%"></div>
+                            </div>
+                            <span class="small text-nowrap">
+                                Episodio {{ seguimiento.episodio_actual }} de {{ titulo.total_episodios }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'sumar_episodio' seguimiento.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="volver" value="titulo">
+                            <button type="submit" class="btn btn-success" {% if seguimiento.terminado %}disabled{% endif %}>
+                                +1 ep.
+                            </button>
+                        </form>
+                        <a href="{% url 'editar_seguimiento' seguimiento.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <form method="post" action="{% url 'agregar_seguimiento' titulo.pk %}"
+                      class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    {% csrf_token %}
+                    <span>¿Lo estás viendo o quieres verlo?</span>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Agregar a mi lista
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <h2 class="h5">Sinopsis</h2>
+        {% if titulo.sinopsis %}
+            <p class="sinopsis">{{ titulo.sinopsis|linebreaksbr }}</p>
+        {% else %}
+            <p class="text-body-secondary fst-italic">Este título todavía no tiene sinopsis.</p>
+        {% endif %}
+    </div>
+</div>
+
+<section id="comentarios" class="mt-5">
+    <h2 class="h4 mb-3">
+        Comentarios <span class="badge text-bg-secondary align-middle fs-6">{{ comentarios|length }}</span>
+    </h2>
+
+    {% if form_comentario %}
+        <form method="post" action="{{ request.path }}#comentarios" class="card card-body shadow-sm mb-4" novalidate>
+            {% csrf_token %}
+            {% include 'modulo/_campo.html' with campo=form_comentario.texto %}
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Publicar
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <p class="text-body-secondary">
+            <a href="{% url 'login' %}?next={{ request.path|urlencode }}%23comentarios">Inicia sesión</a> para dejar un comentario.
+        </p>
+    {% endif %}
+
+    {% for comentario in comentarios %}
+        <article class="d-flex gap-3 mb-3 comentario">
+            <i class="bi bi-person-circle fs-3 text-body-secondary"></i>
+            <div class="flex-grow-1 border-bottom pb-3">
+                <div class="d-flex flex-wrap align-items-baseline gap-2 mb-1">
+                    <strong>{{ comentario.usuario.username }}</strong>
+                    <time class="small text-body-secondary" datetime="{{ comentario.fecha|date:'c' }}"
+                          title="{{ comentario.fecha|date:'j \d\e F \d\e Y, H:i' }}">
+                        hace {{ comentario.fecha|timesince }}
+                    </time>
+                </div>
+                <p class="mb-0 texto-comentario">{{ comentario.texto|linebreaksbr }}</p>
+            </div>
+        </article>
+    {% empty %}
+        <p class="text-body-secondary fst-italic">Todavía nadie ha comentado este título. ¡Sé el primero!</p>
+    {% endfor %}
+</section>
+{% endblock %}
