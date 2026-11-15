@@ -16,7 +16,8 @@
                 </p>
                 <form method="post" class="d-flex justify-content-center gap-2">
                     {% csrf_token %}
-                    <a href="{% url 'mi_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <input type="hidden" name="siguiente" value="{{ url_volver }}">
+                    <a href="{{ url_volver }}" class="btn btn-outline-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-danger">Sí, quitar</button>
                 </form>
             </div>

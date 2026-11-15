@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -5,6 +7,8 @@ from django.contrib.auth.views import LoginView, redirect_to_login
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import ComentarioForm, FiltroCatalogoForm, FiltroMiListaForm, LoginForm, RegistroForm, SeguimientoForm
@@ -147,6 +151,23 @@ class IniciarSesionView(LoginView):
 # Mi lista (seguimientos del usuario)
 # ---------------------------------------------------------------------------
 
+def _url_de_regreso(request):
+    """A dónde volver tras editar, quitar o sumar un episodio: la misma página y filtros
+    de Mi lista desde donde se llegó (parámetro "siguiente").
+
+    Solo se aceptan direcciones de Mi lista de este mismo sitio, para que nadie pueda
+    armar un enlace que después redirija a otra página o a otro dominio.
+    """
+    destino = request.POST.get('siguiente') or request.GET.get('siguiente') or ''
+    mi_lista_url = reverse('mi_lista')
+    es_seguro = url_has_allowed_host_and_scheme(
+        destino, allowed_hosts={request.get_host()}, require_https=request.is_secure(),
+    )
+    if es_seguro and urlsplit(destino).path == mi_lista_url:
+        return destino
+    return mi_lista_url
+
+
 def _seguimiento_del_usuario(request, pk):
     """Devuelve el seguimiento solo si pertenece al usuario; si no, 404."""
     return get_object_or_404(
@@ -218,13 +239,14 @@ def editar_seguimiento(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f'Se actualizó tu progreso en "{seguimiento.titulo.nombre}".')
-            return redirect('mi_lista')
+            return redirect(_url_de_regreso(request))
     else:
         form = SeguimientoForm(instance=seguimiento)
 
     return render(request, 'modulo/seguimiento_form.html', {
         'form': form,
         'seguimiento': seguimiento,
+        'url_volver': _url_de_regreso(request),
     })
 
 
@@ -251,7 +273,7 @@ def sumar_episodio(request, pk):
     # Vuelve a la página desde donde se pulsó el botón
     if request.POST.get('volver') == 'titulo':
         return redirect(titulo)
-    return redirect('mi_lista')
+    return redirect(_url_de_regreso(request))
 
 
 @login_required
@@ -262,6 +284,10 @@ def eliminar_seguimiento(request, pk):
         nombre = seguimiento.titulo.nombre
         seguimiento.delete()
         messages.success(request, f'"{nombre}" se quitó de tu lista.')
-        return redirect('mi_lista')
+        # Si era el único de la última página, get_page() de Mi lista muestra la anterior
+        return redirect(_url_de_regreso(request))
 
-    return render(request, 'modulo/seguimiento_eliminar.html', {'seguimiento': seguimiento})
+    return render(request, 'modulo/seguimiento_eliminar.html', {
+        'seguimiento': seguimiento,
+        'url_volver': _url_de_regreso(request),
+    })

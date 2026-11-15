@@ -74,18 +74,20 @@
                     </div>
 
                     <div class="col-12 col-md-auto d-flex gap-2 justify-content-end">
+                        {# "siguiente" = esta misma página y filtros, para volver aquí después #}
                         <form method="post" action="{% url 'sumar_episodio' s.pk %}">
                             {% csrf_token %}
+                            <input type="hidden" name="siguiente" value="{{ request.get_full_path }}">
                             <button type="submit" class="btn btn-sm btn-success"
                                     title="Marcar el siguiente episodio como visto"
                                     {% if s.terminado %}disabled{% endif %}>
                                 +1 ep.
                             </button>
                         </form>
-                        <a href="{% url 'editar_seguimiento' s.pk %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'editar_seguimiento' s.pk %}?siguiente={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a href="{% url 'eliminar_seguimiento' s.pk %}" class="btn btn-sm btn-outline-danger" title="Quitar de mi lista">
+                        <a href="{% url 'eliminar_seguimiento' s.pk %}?siguiente={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-danger" title="Quitar de mi lista">
                             <i class="bi bi-trash"></i>
                         </a>
                     </div>

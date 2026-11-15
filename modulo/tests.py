@@ -174,6 +174,34 @@ class MiListaTests(DatosBase):
         self.assertContains(respuesta, 'href="?estado=pendiente"')
         self.assertContains(respuesta, 'href="?estado=viendo&amp;favoritas=on"')
 
+    def test_acciones_vuelven_a_la_misma_pagina_y_filtros(self):
+        s = Seguimiento.objects.create(usuario=self.ana, titulo=self.serie)
+        self.entrar(self.ana)
+        siguiente = reverse('mi_lista') + '?estado=pendiente&favoritas=on&page=2'
+
+        respuesta = self.client.post(reverse('sumar_episodio', args=[s.pk]), {'siguiente': siguiente})
+        self.assertRedirects(respuesta, siguiente, fetch_redirect_response=False)
+
+        # Editar: el formulario conserva "siguiente" y al guardar vuelve ahí
+        url = reverse('editar_seguimiento', args=[s.pk])
+        respuesta = self.client.get(url, {'siguiente': siguiente})
+        self.assertContains(respuesta, 'name="siguiente" value="/mi-lista/?estado=pendiente&amp;favoritas=on&amp;page=2"')
+        datos = {'estado': 'viendo', 'episodio_actual': 2, 'fecha_inicio': '2026-11-01', 'siguiente': siguiente}
+        respuesta = self.client.post(url, datos)
+        self.assertRedirects(respuesta, siguiente, fetch_redirect_response=False)
+
+        respuesta = self.client.post(reverse('eliminar_seguimiento', args=[s.pk]), {'siguiente': siguiente})
+        self.assertRedirects(respuesta, siguiente, fetch_redirect_response=False)
+
+    def test_regreso_no_redirige_fuera_de_mi_lista(self):
+        s = Seguimiento.objects.create(usuario=self.ana, titulo=self.anime)
+        self.entrar(self.ana)
+        url = reverse('sumar_episodio', args=[s.pk])
+        for destino in ('https://sitio-malo.com/mi-lista/', '//sitio-malo.com/mi-lista/', '/catalogo/', '/admin/'):
+            with self.subTest(destino=destino):
+                respuesta = self.client.post(url, {'siguiente': destino})
+                self.assertRedirects(respuesta, reverse('mi_lista'), fetch_redirect_response=False)
+
     def test_editar_valida_episodios(self):
         s = Seguimiento.objects.create(usuario=self.ana, titulo=self.serie)
         self.entrar(self.ana)

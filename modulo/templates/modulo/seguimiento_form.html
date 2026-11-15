@@ -5,7 +5,7 @@
 {% block contenido %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'mi_lista' %}">Mi lista</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_volver }}">Mi lista</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ seguimiento.titulo.nombre }}</li>
     </ol>
 </nav>
@@ -19,6 +19,7 @@
 
                 <form method="post" novalidate>
                     {% csrf_token %}
+                    <input type="hidden" name="siguiente" value="{{ url_volver }}">
                     {% for error in form.non_field_errors %}
                         <div class="alert alert-danger">{{ error }}</div>
                     {% endfor %}
@@ -40,11 +41,11 @@
                     </div>
 
                     <div class="d-flex flex-wrap justify-content-between gap-2 mt-2">
-                        <a href="{% url 'eliminar_seguimiento' seguimiento.pk %}" class="btn btn-outline-danger">
+                        <a href="{% url 'eliminar_seguimiento' seguimiento.pk %}?siguiente={{ url_volver|urlencode }}" class="btn btn-outline-danger">
                             <i class="bi bi-trash"></i> Quitar de mi lista
                         </a>
                         <div class="d-flex gap-2">
-                            <a href="{% url 'mi_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+                            <a href="{{ url_volver }}" class="btn btn-outline-secondary">Cancelar</a>
                             <button type="submit" class="btn btn-primary">Guardar</button>
                         </div>
                     </div>
