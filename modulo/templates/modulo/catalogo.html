@@ -46,33 +46,7 @@
         {% endfor %}
     </div>
 
-    {% if pagina.has_other_pages %}
-        <nav class="mt-4" aria-label="Páginas del catálogo">
-            <ul class="pagination justify-content-center">
-                {% if pagina.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-                {% endif %}
-
-                {% for numero in pagina.paginator.page_range %}
-                    <li class="page-item {% if numero == pagina.number %}active{% endif %}">
-                        <a class="page-link" href="{% querystring page=numero %}">{{ numero }}</a>
-                    </li>
-                {% endfor %}
-
-                {% if pagina.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{% querystring page=pagina.next_page_number %}">Siguiente</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
+    {% include 'modulo/_paginacion.html' with etiqueta='Páginas del catálogo' %}
 {% else %}
     <div class="text-center text-body-secondary py-5">
         <i class="bi bi-search display-4 d-block mb-3"></i>

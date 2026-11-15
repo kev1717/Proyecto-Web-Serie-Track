@@ -11,6 +11,7 @@ from .forms import ComentarioForm, FiltroCatalogoForm, FiltroMiListaForm, LoginF
 from .models import Seguimiento, Titulo
 
 TITULOS_POR_PAGINA = 12
+SEGUIMIENTOS_POR_PAGINA = 12
 
 # Ranking: cuántas calificaciones necesita un título para aparecer y cuántos se muestran.
 # Con pocos usuarios (proyecto local) basta 1; en un sitio real convendría subirlo
@@ -184,8 +185,11 @@ def mi_lista(request):
         if favoritas:
             seguimientos = seguimientos.filter(favorita=True)
 
+    # Se pagina después de filtrar; los enlaces de página conservan ?estado= y ?favoritas=
+    pagina = Paginator(seguimientos, SEGUIMIENTOS_POR_PAGINA).get_page(request.GET.get('page'))
+
     return render(request, 'modulo/mi_lista.html', {
-        'seguimientos': seguimientos,
+        'pagina': pagina,
         'pestanas': pestanas,
         'estado_actual': estado or '',
         'solo_favoritas': favoritas,

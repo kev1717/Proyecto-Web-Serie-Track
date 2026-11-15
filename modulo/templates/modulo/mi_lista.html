@@ -10,12 +10,12 @@
     </a>
 </div>
 
-{# Pestañas por estado #}
+{# Pestañas por estado. Al cambiar de filtro se vuelve a la página 1 (page=None). #}
 <ul class="nav nav-pills flex-wrap gap-1 mb-2">
     {% for valor, nombre, cantidad in pestanas %}
         <li class="nav-item">
             <a class="nav-link py-1 px-3 {% if valor == estado_actual %}active{% endif %}"
-               href="{% if valor %}{% querystring estado=valor %}{% else %}{% querystring estado=None %}{% endif %}">
+               href="{% if valor %}{% querystring estado=valor page=None %}{% else %}{% querystring estado=None page=None %}{% endif %}">
                 {{ nombre }}
                 <span class="badge {% if valor == estado_actual %}text-bg-light{% else %}text-bg-secondary{% endif %} ms-1">{{ cantidad }}</span>
             </a>
@@ -24,19 +24,19 @@
 </ul>
 <div class="mb-4">
     {% if solo_favoritas %}
-        <a href="{% querystring favoritas=None %}" class="btn btn-warning btn-sm">
+        <a href="{% querystring favoritas=None page=None %}" class="btn btn-warning btn-sm">
             <i class="bi bi-star-fill"></i> Solo favoritas ({{ total_favoritas }}) <i class="bi bi-x-lg ms-1"></i>
         </a>
     {% else %}
-        <a href="{% querystring favoritas='on' %}" class="btn btn-outline-warning btn-sm">
+        <a href="{% querystring favoritas='on' page=None %}" class="btn btn-outline-warning btn-sm">
             <i class="bi bi-star"></i> Ver solo favoritas ({{ total_favoritas }})
         </a>
     {% endif %}
 </div>
 
-{% if seguimientos %}
+{% if pagina.object_list %}
     <div class="list-group shadow-sm">
-        {% for s in seguimientos %}
+        {% for s in pagina %}
             <div class="list-group-item py-3">
                 <div class="row g-3 align-items-center">
                     <div class="col-auto">
@@ -93,6 +93,8 @@
             </div>
         {% endfor %}
     </div>
+
+    {% include 'modulo/_paginacion.html' with etiqueta='Páginas de mi lista' %}
 {% else %}
     <div class="text-center text-body-secondary py-5">
         <i class="bi bi-collection-play display-4 d-block mb-3"></i>

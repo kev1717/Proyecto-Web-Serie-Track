@@ -15,6 +15,7 @@ from PIL import Image
 
 from .models import Comentario, Genero, Seguimiento, Titulo
 from .portadas import COLORES_PORTADA, generar_portada
+from .views import SEGUIMIENTOS_POR_PAGINA
 
 CLAVE = 'clave-de-prueba-123'
 
@@ -131,6 +132,47 @@ class MiListaTests(DatosBase):
         respuesta = self.client.get(reverse('mi_lista'), {'estado': 'viendo'})
         self.assertContains(respuesta, 'Serie de prueba')
         self.assertNotContains(respuesta, 'Anime de prueba')
+
+    def _crear_seguimientos(self, cantidad, prefijo, **datos):
+        """Crea `cantidad` títulos y los agrega a la lista de Ana con los datos dados."""
+        for i in range(1, cantidad + 1):
+            titulo = Titulo.objects.create(nombre=f'{prefijo} {i:02d}', tipo='serie', genero=self.genero,
+                                           total_episodios=10, anio=2020)
+            Seguimiento.objects.create(usuario=self.ana, titulo=titulo, **datos)
+
+    def test_paginacion_de_12_por_pagina(self):
+        self._crear_seguimientos(SEGUIMIENTOS_POR_PAGINA + 1, 'Título')
+        self.entrar(self.ana)
+
+        pagina_1 = self.client.get(reverse('mi_lista')).context['pagina']
+        self.assertEqual(SEGUIMIENTOS_POR_PAGINA, 12)
+        self.assertEqual((pagina_1.number, len(pagina_1), pagina_1.paginator.num_pages), (1, 12, 2))
+
+        pagina_2 = self.client.get(reverse('mi_lista'), {'page': 2}).context['pagina']
+        self.assertEqual([s.titulo.nombre for s in pagina_2], ['Título 13'])
+
+    def test_paginacion_conserva_los_filtros(self):
+        # 13 que cumplen el filtro (2 páginas) y 5 que no, para comprobar que la página 2 sigue filtrada
+        self._crear_seguimientos(13, 'Viendo', estado='viendo', favorita=True)
+        self._crear_seguimientos(5, 'Pendiente', estado='pendiente', favorita=True)
+        self.entrar(self.ana)
+
+        respuesta = self.client.get(reverse('mi_lista'), {'estado': 'viendo', 'favoritas': 'on'})
+        self.assertContains(respuesta, 'href="?estado=viendo&amp;favoritas=on&amp;page=2"')
+
+        respuesta = self.client.get(reverse('mi_lista'), {'estado': 'viendo', 'favoritas': 'on', 'page': 2})
+        pagina = respuesta.context['pagina']
+        self.assertEqual((pagina.number, pagina.paginator.count), (2, 13))
+        self.assertEqual([s.titulo.nombre for s in pagina], ['Viendo 13'])
+        self.assertNotContains(respuesta, 'Pendiente 0')
+
+    def test_cambiar_de_filtro_vuelve_a_la_primera_pagina(self):
+        self._crear_seguimientos(13, 'Viendo', estado='viendo')
+        self.entrar(self.ana)
+        respuesta = self.client.get(reverse('mi_lista'), {'estado': 'viendo', 'page': 2})
+        # Los enlaces de pestañas y favoritas no arrastran el número de página
+        self.assertContains(respuesta, 'href="?estado=pendiente"')
+        self.assertContains(respuesta, 'href="?estado=viendo&amp;favoritas=on"')
 
     def test_editar_valida_episodios(self):
         s = Seguimiento.objects.create(usuario=self.ana, titulo=self.serie)

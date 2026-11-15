@@ -1,0 +1,30 @@
+{# Barra de páginas. Recibe "pagina" (Page de Django) y "etiqueta" (para lectores de pantalla). #}
+{# Usa {% querystring %}, que conserva los demás parámetros de la URL (búsqueda, filtros...). #}
+{% if pagina.has_other_pages %}
+    <nav class="mt-4" aria-label="{{ etiqueta|default:'Páginas' }}">
+        <ul class="pagination justify-content-center flex-wrap">
+            {% if pagina.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+
+            {% for numero in pagina.paginator.page_range %}
+                <li class="page-item {% if numero == pagina.number %}active{% endif %}">
+                    <a class="page-link" href="{% querystring page=numero %}"
+                       {% if numero == pagina.number %}aria-current="page"{% endif %}>{{ numero }}</a>
+                </li>
+            {% endfor %}
+
+            {% if pagina.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{% querystring page=pagina.next_page_number %}">Siguiente</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
