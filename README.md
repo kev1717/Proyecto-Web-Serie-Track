@@ -23,16 +23,23 @@ Requiere Python 3.12 o superior. En Windows (PowerShell):
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-py manage.py migrate
-py manage.py cargar_ejemplos
 py manage.py runserver
 ```
 
 Luego se abre http://127.0.0.1:8000/.
 
-`cargar_ejemplos` crea géneros, series, animes, usuarios, seguimientos y comentarios de
-ejemplo, y genera las portadas de los títulos. Se puede ejecutar varias veces sin duplicar
-datos.
+El repositorio ya incluye la base de datos (`db.sqlite3`) con títulos, usuarios,
+seguimientos y comentarios de ejemplo, y las portadas en `media/portadas/`.
+
+Si se empieza con una base de datos vacía, o falta alguna portada, se ejecuta:
+
+```powershell
+py manage.py migrate
+py manage.py cargar_ejemplos
+```
+
+Ese comando crea los datos de ejemplo y genera las portadas que falten. Se puede
+ejecutar varias veces sin duplicar nada ni reemplazar portadas existentes.
 
 ## Usuarios de ejemplo
 
