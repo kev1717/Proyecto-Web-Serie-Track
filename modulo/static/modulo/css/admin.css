@@ -214,6 +214,34 @@ a.st-tarjeta:hover {
     vertical-align: middle;
 }
 
+/* Muestra de los colores que se pueden elegir para la portada */
+.st-paleta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.st-color {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 4px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 999px;
+    font-size: .8rem;
+}
+
+.st-color > span {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.st-color-actual {
+    border-color: var(--body-fg);
+    font-weight: 600;
+}
+
 /* ---------- Etiquetas de tipo y estado ---------- */
 .st-badge {
     display: inline-block;

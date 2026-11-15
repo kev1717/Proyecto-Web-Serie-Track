@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from modulo.models import Comentario, Genero, Seguimiento, Titulo
-from modulo.portadas import generar_portada
+from modulo.portadas import guardar_portada_generada
 
 CLAVE_DEMO = 'serietrack123'
 
@@ -173,8 +173,7 @@ class Command(BaseCommand):
             # Nunca pisa una portada que sí existe, como las subidas por el admin.
             portada_actual = titulos[nombre].portada
             if not portada_actual or not portada_actual.storage.exists(portada_actual.name):
-                portada = generar_portada(titulos[nombre])
-                titulos[nombre].portada.save(portada.name, portada)
+                guardar_portada_generada(titulos[nombre])
                 creados['portadas'] += 1
 
         usuarios = {}

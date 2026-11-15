@@ -1,7 +1,8 @@
 """Genera portadas originales (sin derechos de autor de terceros) para los títulos.
 
 Cada portada es una imagen de 400x600 px (proporción de póster 2:3) con un
-degradado del color del género, el nombre del título, el tipo y el año.
+degradado del color elegido por el admin (o del género, si no eligió), el nombre
+del título, el tipo y el año.
 """
 import colorsys
 import zlib
@@ -25,6 +26,19 @@ COLORES_GENERO = {
     'Fantasía': (170, 60, 140),
 }
 COLOR_POR_DEFECTO = (80, 90, 100)
+
+# Colores que el admin puede elegir (claves = valores de Titulo.ColorPortada).
+# A diferencia del color del género, estos se usan tal cual, sin variar el tono.
+COLORES_PORTADA = {
+    'rojo': (200, 55, 45),
+    'naranja': (225, 110, 25),
+    'amarillo': (215, 165, 20),
+    'verde': (40, 140, 70),
+    'turquesa': (20, 130, 150),
+    'azul': (40, 90, 180),
+    'morado': (110, 50, 150),
+    'gris': (80, 90, 100),
+}
 
 # Fuentes en orden de preferencia (Windows, Linux); si ninguna existe se usa la de Pillow
 FUENTES_NEGRITA = ['arialbd.ttf', 'DejaVuSans-Bold.ttf']
@@ -79,11 +93,32 @@ def _titulo_ajustado(dibujo, texto, ancho_maximo):
     return fuente, lineas, tamano
 
 
+def color_de_portada(titulo, semilla):
+    """El color elegido por el admin o, si no eligió, el del género con el tono un poco variado."""
+    if titulo.color_portada in COLORES_PORTADA:
+        return COLORES_PORTADA[titulo.color_portada]
+    return _variar_tono(COLORES_GENERO.get(titulo.genero.nombre, COLOR_POR_DEFECTO), semilla)
+
+
+def guardar_portada_generada(titulo):
+    """Genera la portada del título, la guarda y la marca como generada.
+
+    Si el título ya tenía una portada generada, se borra el archivo viejo para no dejar
+    imágenes sueltas en media/. Quien llama debe asegurarse de no usarla sobre una
+    portada subida por el admin.
+    """
+    archivo = generar_portada(titulo)
+    if titulo.portada and titulo.portada_generada:
+        titulo.portada.delete(save=False)
+    titulo.portada_generada = True
+    titulo.portada.save(archivo.name, archivo)  # también guarda el título
+
+
 def generar_portada(titulo):
     """Devuelve un ContentFile PNG listo para asignar a titulo.portada."""
     # Semilla fija a partir del nombre: el mismo título siempre da la misma portada
     semilla = zlib.crc32(titulo.nombre.encode('utf-8'))
-    color = _variar_tono(COLORES_GENERO.get(titulo.genero.nombre, COLOR_POR_DEFECTO), semilla)
+    color = color_de_portada(titulo, semilla)
     arriba, abajo = color, _oscurecer(color, 0.35)
 
     imagen = Image.new('RGB', (ANCHO, ALTO))

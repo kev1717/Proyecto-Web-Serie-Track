@@ -23,6 +23,18 @@ class Titulo(models.Model):
         SERIE = 'serie', 'Serie'
         ANIME = 'anime', 'Anime'
 
+    class ColorPortada(models.TextChoices):
+        # El valor vacío usa el color del género (comportamiento original)
+        GENERO = '', 'Según el género'
+        ROJO = 'rojo', 'Rojo'
+        NARANJA = 'naranja', 'Naranja'
+        AMARILLO = 'amarillo', 'Amarillo'
+        VERDE = 'verde', 'Verde'
+        TURQUESA = 'turquesa', 'Turquesa'
+        AZUL = 'azul', 'Azul'
+        MORADO = 'morado', 'Morado'
+        GRIS = 'gris', 'Gris'
+
     nombre = models.CharField('nombre', max_length=150)
     tipo = models.CharField('tipo', max_length=10, choices=Tipo.choices)
     genero = models.ForeignKey(
@@ -41,6 +53,17 @@ class Titulo(models.Model):
         validators=[MinValueValidator(1900), MaxValueValidator(2100)],
     )
     portada = models.ImageField('portada', upload_to='portadas/', blank=True)
+    color_portada = models.CharField(
+        'color de la portada',
+        max_length=10,
+        choices=ColorPortada.choices,
+        blank=True,
+        default=ColorPortada.GENERO,
+        help_text='Color con el que se genera la portada. No se aplica si subes una imagen.',
+    )
+    # True si la portada actual la generó el sitio (se puede regenerar); False si la subió
+    # el admin (nunca se reemplaza). No se muestra en formularios.
+    portada_generada = models.BooleanField(default=False, editable=False)
 
     class Meta:
         verbose_name = 'título'

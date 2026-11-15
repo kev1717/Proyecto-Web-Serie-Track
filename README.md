@@ -12,8 +12,9 @@ con plantillas y Bootstrap 5. Funciona en local con SQLite.
   la página de cada título y el ranking. Puede registrarse e iniciar sesión.
 - **Usuario:** agrega títulos a **Mi lista**, actualiza su progreso (incluido un botón rápido
   "+1 episodio"), cambia el estado, califica del 1 al 10, marca favoritas y comenta.
-- **Administrador** (`/admin`): gestiona el catálogo, los géneros y los usuarios, genera
-  portadas y modera los comentarios (puede ocultarlos).
+- **Administrador** (`/admin`): gestiona el catálogo, los géneros y los usuarios, y modera
+  los comentarios (puede ocultarlos). Al añadir un título elige el color de la portada de
+  una lista y la portada se genera sola; también puede subir una imagen propia.
 
 ## Cómo ejecutarlo
 

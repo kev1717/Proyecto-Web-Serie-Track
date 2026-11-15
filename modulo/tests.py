@@ -14,7 +14,7 @@ from django.urls import reverse
 from PIL import Image
 
 from .models import Comentario, Genero, Seguimiento, Titulo
-from .portadas import generar_portada
+from .portadas import COLORES_PORTADA, generar_portada
 
 CLAVE = 'clave-de-prueba-123'
 
@@ -273,6 +273,18 @@ class PortadaTests(DatosBase):
         self.serie.nombre = 'Supercalifragilisticoespialidoso ' * 4
         Image.open(BytesIO(generar_portada(self.serie).read())).verify()
 
+    def test_usa_el_color_elegido_por_el_admin(self):
+        # La esquina superior izquierda es el inicio del degradado: el color elegido tal cual
+        for valor, rgb in COLORES_PORTADA.items():
+            with self.subTest(color=valor):
+                self.serie.color_portada = valor
+                imagen = Image.open(BytesIO(generar_portada(self.serie).read())).convert('RGB')
+                self.assertEqual(imagen.getpixel((0, 0)), rgb)
+
+    def test_todos_los_colores_de_la_lista_tienen_rgb(self):
+        valores = {valor for valor in Titulo.ColorPortada.values if valor}
+        self.assertEqual(valores, set(COLORES_PORTADA))
+
 
 class CargarEjemplosTests(TestCase):
     """El comando guarda portadas: se usa una carpeta temporal para no ensuciar media/."""
@@ -367,6 +379,78 @@ class AdminTests(DatosBase):
         }, follow=True)
         self.assertContains(respuesta, 'Se generaron 2 portada(s).')
         self.assertFalse(Titulo.objects.filter(portada='').exists())
+
+    # --- Color de la portada elegido por el admin ---
+
+    def _datos_formulario(self, titulo, **cambios):
+        """Datos POST del formulario de título del admin (incluye el inline de comentarios vacío)."""
+        datos = {
+            'nombre': titulo.nombre, 'tipo': titulo.tipo, 'genero': titulo.genero_id,
+            'anio': titulo.anio, 'total_episodios': titulo.total_episodios,
+            'sinopsis': titulo.sinopsis, 'color_portada': titulo.color_portada,
+            'comentarios-TOTAL_FORMS': 0, 'comentarios-INITIAL_FORMS': 0,
+            'comentarios-MIN_NUM_FORMS': 0, 'comentarios-MAX_NUM_FORMS': 1000,
+        }
+        datos.update(cambios)
+        return datos
+
+    def _color_de_la_portada(self, titulo):
+        with titulo.portada.open('rb') as archivo:
+            return Image.open(archivo).convert('RGB').getpixel((0, 0))
+
+    def test_al_crear_un_titulo_se_genera_la_portada_con_el_color_elegido(self):
+        nuevo = Titulo(nombre='Serie nueva', tipo='serie', genero=self.genero,
+                       anio=2024, total_episodios=8, color_portada='verde')
+        respuesta = self.client.post(reverse('admin:modulo_titulo_add'), self._datos_formulario(nuevo))
+        self.assertEqual(respuesta.status_code, 302)
+
+        titulo = Titulo.objects.get(nombre='Serie nueva')
+        self.assertTrue(titulo.portada_generada)
+        self.assertEqual(self._color_de_la_portada(titulo), COLORES_PORTADA['verde'])
+
+    def test_al_cambiar_el_color_se_regenera_y_se_borra_la_vieja(self):
+        url = reverse('admin:modulo_titulo_change', args=[self.anime.pk])
+        self.client.post(url, self._datos_formulario(self.anime, color_portada='rojo'))
+        self.anime.refresh_from_db()
+        vieja = self.anime.portada.name
+
+        self.client.post(url, self._datos_formulario(self.anime, color_portada='azul'))
+        self.anime.refresh_from_db()
+        self.assertEqual(self._color_de_la_portada(self.anime), COLORES_PORTADA['azul'])
+        if vieja != self.anime.portada.name:
+            self.assertFalse(default_storage.exists(vieja))
+
+    def test_si_no_cambia_nada_de_la_portada_no_se_regenera(self):
+        url = reverse('admin:modulo_titulo_change', args=[self.anime.pk])
+        self.client.post(url, self._datos_formulario(self.anime, color_portada='rojo'))
+        self.anime.refresh_from_db()
+        antes = self.anime.portada.name
+
+        self.client.post(url, self._datos_formulario(self.anime, total_episodios=24))
+        self.anime.refresh_from_db()
+        self.assertEqual(self.anime.portada.name, antes)
+
+    def test_una_portada_subida_nunca_se_reemplaza(self):
+        subida = BytesIO()
+        Image.new('RGB', (40, 60), (1, 2, 3)).save(subida, format='PNG')
+        subida.name = 'mi-poster.png'
+        subida.seek(0)
+        url = reverse('admin:modulo_titulo_change', args=[self.anime.pk])
+        respuesta = self.client.post(url, self._datos_formulario(self.anime, portada=subida))
+        self.assertEqual(respuesta.status_code, 302)
+        self.anime.refresh_from_db()
+        self.assertFalse(self.anime.portada_generada)
+        nombre = self.anime.portada.name
+
+        self.client.post(url, self._datos_formulario(self.anime, color_portada='morado'))
+        self.anime.refresh_from_db()
+        self.assertEqual(self.anime.portada.name, nombre)
+        self.assertEqual(self._color_de_la_portada(self.anime), (1, 2, 3))
+
+    def test_formulario_muestra_la_paleta(self):
+        respuesta = self.client.get(reverse('admin:modulo_titulo_change', args=[self.anime.pk]))
+        self.assertContains(respuesta, 'st-paleta')
+        self.assertContains(respuesta, 'Según el género')
 
     def test_no_se_agregan_comentarios_desde_el_admin(self):
         self.assertEqual(self.client.get(reverse('admin:modulo_comentario_add')).status_code, 403)
