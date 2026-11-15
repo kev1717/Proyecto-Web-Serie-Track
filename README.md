@@ -11,10 +11,12 @@ con plantillas y Bootstrap 5. Funciona en local con SQLite.
 - **Visitante:** ve la página de inicio, el catálogo (con búsqueda y filtros por tipo y género),
   la página de cada título y el ranking. Puede registrarse e iniciar sesión.
 - **Usuario:** agrega títulos a **Mi lista**, actualiza su progreso (incluido un botón rápido
-  "+1 episodio"), cambia el estado, califica del 1 al 10, marca favoritas y comenta.
+  "+1 episodio"), cambia el estado, califica del 1 al 10, marca favoritas y comenta. Mi lista
+  se puede filtrar por estado y por favoritas, y se muestra de a 12 títulos por página.
 - **Administrador** (`/admin`): gestiona el catálogo, los géneros y los usuarios, y modera
   los comentarios (puede ocultarlos). Al añadir un título elige el color de la portada de
-  una lista y la portada se genera sola; también puede subir una imagen propia.
+  una lista, con una vista previa que se actualiza mientras llena el formulario, y la
+  portada se genera sola al guardar; también puede subir una imagen propia.
 
 ## Cómo ejecutarlo
 
