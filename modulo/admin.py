@@ -1,10 +1,16 @@
+from urllib.parse import urlencode
+
 from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Count
+from django.http import HttpResponse
 from django.template.defaultfilters import truncatechars
+from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
 from .models import Comentario, Genero, Seguimiento, Titulo
-from .portadas import COLORES_PORTADA, guardar_portada_generada
+from .portadas import COLORES_PORTADA, generar_portada, guardar_portada_generada
 
 # Textos del encabezado del panel
 admin.site.site_header = 'SerieTrack'
@@ -69,6 +75,9 @@ class TituloAdmin(admin.ModelAdmin):
     # Datos que aparecen dibujados en la portada: si cambian, la portada generada se rehace
     CAMPOS_DE_LA_PORTADA = {'nombre', 'tipo', 'genero', 'anio', 'color_portada'}
 
+    class Media:
+        js = ['modulo/js/vista_previa.js']
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('genero').annotate(
             _promedio=Avg('seguimientos__calificacion'),
@@ -81,7 +90,53 @@ class TituloAdmin(admin.ModelAdmin):
 
     @admin.display(description='vista previa')
     def portada_vista(self, obj):
-        return _miniatura(obj, 'st-portada-grande')
+        """Imagen que static/modulo/js/vista_previa.js actualiza mientras se edita el formulario.
+
+        Si la portada es una imagen subida, se muestra esa (el color no se le aplica).
+        Si no hay portada todavía, se pide una vista previa con los datos actuales.
+        """
+        subida = bool(obj.portada) and not obj.portada_generada
+        if obj.portada:
+            src = obj.portada.url
+        else:
+            src = reverse('admin:modulo_titulo_vista_previa') + '?' + urlencode({
+                'nombre': obj.nombre, 'tipo': obj.tipo, 'genero': obj.genero_id or '',
+                'anio': obj.anio or '', 'color_portada': obj.color_portada,
+            })
+        return format_html(
+            '<img id="st-vista-previa" class="st-portada-grande" src="{}" alt="Vista previa de la portada" '
+            'data-url="{}" data-subida="{}">'
+            '<p id="st-aviso-subida" class="help"{}>Es una imagen subida: el color no se le aplica.</p>',
+            src, reverse('admin:modulo_titulo_vista_previa'), int(subida), '' if subida else mark_safe(' hidden'),
+        )
+
+    def get_urls(self):
+        # Va antes de las del admin para que "vista-previa/" no se tome como el id de un título
+        propias = [
+            path('vista-previa/', self.admin_site.admin_view(self.vista_previa_portada),
+                 name='modulo_titulo_vista_previa'),
+        ]
+        return propias + super().get_urls()
+
+    def vista_previa_portada(self, request):
+        """Devuelve la portada (PNG) que tendría un título con los datos recibidos, sin guardar nada."""
+        if not (self.has_add_permission(request) or self.has_change_permission(request)):
+            raise PermissionDenied
+
+        datos = request.GET
+        genero_id = datos.get('genero', '')
+        genero = Genero.objects.filter(pk=genero_id).first() if genero_id.isdigit() else None
+        anio = datos.get('anio', '')
+        tipo = datos.get('tipo', '')
+        color = datos.get('color_portada', '')
+        titulo = Titulo(
+            nombre=datos.get('nombre', '').strip()[:150] or 'Sin nombre',
+            tipo=tipo if tipo in Titulo.Tipo.values else Titulo.Tipo.SERIE,
+            genero=genero or Genero(nombre='Sin género'),
+            anio=int(anio) if anio.isdigit() else None,
+            color_portada=color if color in Titulo.ColorPortada.values else '',
+        )
+        return HttpResponse(generar_portada(titulo).read(), content_type='image/png')
 
     @admin.display(description='colores disponibles')
     def paleta(self, obj):

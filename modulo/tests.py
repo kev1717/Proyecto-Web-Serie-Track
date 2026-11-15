@@ -447,6 +447,42 @@ class AdminTests(DatosBase):
         self.assertEqual(self.anime.portada.name, nombre)
         self.assertEqual(self._color_de_la_portada(self.anime), (1, 2, 3))
 
+    # --- Vista previa en vivo ---
+
+    def test_vista_previa_devuelve_la_portada_sin_guardar_nada(self):
+        cantidad = Titulo.objects.count()
+        respuesta = self.client.get(reverse('admin:modulo_titulo_vista_previa'), {
+            'nombre': 'Algo nuevo', 'tipo': 'anime', 'genero': self.genero.pk,
+            'anio': 2025, 'color_portada': 'turquesa',
+        })
+        self.assertEqual(respuesta['Content-Type'], 'image/png')
+        imagen = Image.open(BytesIO(respuesta.content)).convert('RGB')
+        self.assertEqual(imagen.getpixel((0, 0)), COLORES_PORTADA['turquesa'])
+        self.assertEqual(Titulo.objects.count(), cantidad)
+
+    def test_vista_previa_tolera_datos_incompletos(self):
+        # Mientras se llena el formulario puede haber campos vacíos o a medio escribir
+        respuesta = self.client.get(reverse('admin:modulo_titulo_vista_previa'), {
+            'nombre': '', 'tipo': 'x', 'genero': 'abc', 'anio': '20a', 'color_portada': 'fucsia',
+        })
+        self.assertEqual(respuesta.status_code, 200)
+        Image.open(BytesIO(respuesta.content)).verify()
+
+    def test_vista_previa_solo_para_el_admin(self):
+        self.client.logout()
+        self.entrar(self.ana)
+        respuesta = self.client.get(reverse('admin:modulo_titulo_vista_previa'))
+        self.assertNotEqual(respuesta.get('Content-Type'), 'image/png')
+        self.assertEqual(respuesta.status_code, 302)  # al login del admin
+
+    def test_formulario_incluye_la_vista_previa_en_vivo(self):
+        for url in (reverse('admin:modulo_titulo_add'),
+                    reverse('admin:modulo_titulo_change', args=[self.anime.pk])):
+            with self.subTest(url=url):
+                respuesta = self.client.get(url)
+                self.assertContains(respuesta, 'id="st-vista-previa"')
+                self.assertContains(respuesta, 'modulo/js/vista_previa.js')
+
     def test_formulario_muestra_la_paleta(self):
         respuesta = self.client.get(reverse('admin:modulo_titulo_change', args=[self.anime.pk]))
         self.assertContains(respuesta, 'st-paleta')

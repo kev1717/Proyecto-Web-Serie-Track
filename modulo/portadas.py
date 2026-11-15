@@ -163,7 +163,8 @@ def generar_portada(titulo):
         y += alto_linea
 
     # Pie: año y género
-    pie = f'{titulo.anio}  ·  {titulo.genero.nombre}'
+    # (en la vista previa del admin el año puede venir vacío mientras se escribe)
+    pie = '  ·  '.join(str(parte) for parte in (titulo.anio, titulo.genero.nombre) if parte)
     dibujo.text((MARGEN, ALTO - MARGEN), pie, font=fuente_pie, fill=(235, 235, 235), anchor='ls')
 
     salida = BytesIO()
